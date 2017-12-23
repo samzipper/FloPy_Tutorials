@@ -1,0 +1,8 @@
+Notes on how I set up Python for my laptop, 2017-12-23:
+    
+**Working within Anaconda3**
+-Open Anaconda Prompt
+-Update all packages
+    conda update --all
+-Install flopy
+    pip install flopy
