@@ -9,6 +9,8 @@
 *.pcg
 *.rch
 *.wel
+*.ddn
+*.ghb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
