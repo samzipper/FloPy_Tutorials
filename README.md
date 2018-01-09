@@ -9,3 +9,7 @@ Contents:
     -Hydraulic conductivity 10 m/day
     -Groundwater recharge 1 mm/day
     -Two ditches parallel to canals with extraction rates of 1 m3/m/day, 500 m from L/R canal
+./GitHub-Tutorial1: confined steady-state model from http://modflowpy.github.io/flopydoc/tutorial1.html
+./GitHub-Tutorial2: unconfined transient flow model from http://modflowpy.github.io/flopydoc/tutorial2.html
+./SquareWithWell-SteadyState: steady-state square domain with a well in the middle
+./SquareWithWell-Transient: transient square domain with a well in the middle
