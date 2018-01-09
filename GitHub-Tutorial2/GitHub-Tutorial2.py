@@ -1,4 +1,4 @@
-## Tutorial 1 from http://modflowpy.github.io/flopydoc/tutorial2.html
+## Tutorial 2 from http://modflowpy.github.io/flopydoc/tutorial2.html
 # import flopy
 import flopy
 import numpy as np
@@ -93,7 +93,7 @@ spd = {(0, 0): ['save head','save drawdown'],
        (1, 99): ['save head','save drawdown'],
        (2, 99): ['save head','save drawdown']}
 oc = flopy.modflow.ModflowOc(mf, stress_period_data=spd,
-                             compact=True)
+                             save_every=True, compact=True)
 
 # Write the model input files
 mf.write_input()
