@@ -4,6 +4,9 @@
 # drained by a stream down the middle.
 #
 # Using default units of ITMUNI=4 (days) and LENUNI=2 (meters)
+#
+# Mostly figured out using this notebook: 
+#   https://github.com/modflowpy/flopy/blob/develop/examples/Notebooks/flopy3_sfrpackage_example.ipynb
 
 import numpy as np
 import flopy 
@@ -60,7 +63,10 @@ dis = flopy.modflow.ModflowDis(mf, nlay, nrow, ncol, delr=delr, delc=delc,
 bas = flopy.modflow.ModflowBas(mf, ibound=ibound, strt=strt)
 lpf = flopy.modflow.ModflowLpf(mf, hk=hk, vka=vka, sy=sy, ss=ss, laytyp=laytyp)
 pcg = flopy.modflow.ModflowPcg(mf)
-oc = flopy.modflow.ModflowOc(mf, save_every=True, compact=True)
+
+# output control
+spd = {(0, 0): ['save head', 'save budget', 'save drawdown']}
+oc = flopy.modflow.ModflowOc(mf, stress_period_data=spd, compact=True)
 
 ## make stream network
 # set up stream reach data (Dataset 2)
@@ -130,15 +136,18 @@ success, mfoutput = mf.run_model()
 if not success:
     raise Exception('MODFLOW did not terminate normally.')
 
-## look at output
+####### look at output #######
 # Imports
 import matplotlib.pyplot as plt
 import flopy.utils.binaryfile as bf
+import flopy.utils.sfroutputfile as sf
+import pandas as pd
 
-# land surface
+## plot of land surface
 plt.imshow(ztop, cmap='BrBG')
 plt.colorbar()
 
+## look at head output
 # Create the headfile object
 h = bf.HeadFile(modelname+'.hds', text='head')
 
@@ -146,5 +155,16 @@ h = bf.HeadFile(modelname+'.hds', text='head')
 time = h.times
 h.plot(totim=time[0], contour=True, grid=True, colorbar=True)
 
-# sfr output
+## look at sfr input/output
+# sfr input
 sfr.plot(key='iseg')
+
+## look at sfr output file
+sfrout = sf.SfrFile(modelname+'.sfr.out')
+df = sfrout.get_dataframe()
+df.head()
+
+inds = df.segment == 1
+ax = df.ix[inds, ['Qin', 'Qaquifer', 'Qout']].plot(x=df.reach[inds])
+ax.set_ylabel('Flow, in cubic feet per second')
+ax.set_xlabel('SFR reach')
