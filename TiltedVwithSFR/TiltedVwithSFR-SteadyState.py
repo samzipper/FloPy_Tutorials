@@ -64,6 +64,10 @@ bas = flopy.modflow.ModflowBas(mf, ibound=ibound, strt=strt)
 lpf = flopy.modflow.ModflowLpf(mf, hk=hk, vka=vka, sy=sy, ss=ss, laytyp=laytyp)
 pcg = flopy.modflow.ModflowPcg(mf)
 
+# recharge
+rchrate = 0.001  # [m/d]
+rch = flopy.modflow.ModflowRch(mf, rech=rchrate, nrchop=3)
+
 # output control
 spd = {(0, 0): ['save head', 'save budget', 'save drawdown']}
 oc = flopy.modflow.ModflowOc(mf, stress_period_data=spd, compact=True)
