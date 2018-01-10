@@ -11,6 +11,9 @@
 *.wel
 *.ddn
 *.ghb
+*.cbc
+*.sfr
+*.sfr.out
 
 # images and PDFs
 *.png
