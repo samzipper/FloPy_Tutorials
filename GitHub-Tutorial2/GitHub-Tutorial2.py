@@ -89,11 +89,8 @@ stress_period_data = {0: wel_sp1, 1: wel_sp2, 2: wel_sp3}
 wel = flopy.modflow.ModflowWel(mf, stress_period_data=stress_period_data)
 
 # Output control
-spd = {(0, 0): ['save head','save drawdown'],
-       (1, 99): ['save head','save drawdown'],
-       (2, 99): ['save head','save drawdown']}
-oc = flopy.modflow.ModflowOc(mf, stress_period_data=spd,
-                             save_every=True, compact=True)
+spd = {(0, 0): ['print head', 'save head', 'print budget', 'save budget']}
+oc = flopy.modflow.ModflowOc(mf, stress_period_data=spd)
 
 # Write the model input files
 mf.write_input()
@@ -107,14 +104,13 @@ if not success:
 import matplotlib.pyplot as plt
 import flopy.utils.binaryfile as bf
 
-# Create the headfile object
+# Create the headfile and budget file objects
 headobj = bf.HeadFile(modelname+'.hds')
 times = headobj.get_times()
-
-ddnobj = bf.HeadFile(modelname+'.ddn', text='drawdown')
+cbb = bf.CellBudgetFile(modelname+'.cbc')
 
 # Setup contour parameters
-levels = np.arange(1, 10, 1)
+levels = np.linspace(0, 10, 11)
 extent = (delr/2., Lx - delr/2., delc/2., Ly - delc/2.)
 print('Levels: ', levels)
 print('Extent: ', extent)
@@ -134,15 +130,25 @@ for iplot, time in enumerate(mytimes):
     print('  max: ', head.max())
     print('  std: ', head.std())
 
+    # Extract flow right face and flow front face
+    frf = cbb.get_data(text='FLOW RIGHT FACE', totim=time)[0]
+    fff = cbb.get_data(text='FLOW FRONT FACE', totim=time)[0]
+
     #Create the plot
     #plt.subplot(1, len(mytimes), iplot + 1, aspect='equal')
     plt.subplot(1, 1, 1, aspect='equal')
     plt.title('stress period ' + str(iplot + 1))
-    plt.imshow(head[0, :, :], extent=extent, cmap='BrBG', vmin=0., vmax=10.)
-    plt.colorbar()
-    CS = plt.contour(np.flipud(head[0, :, :]), levels=levels, extent=extent,
-                     zorder=10)
-    plt.clabel(CS, inline=1, fontsize=10, fmt='%1.1f', zorder=11)
+
+
+    modelmap = flopy.plot.ModelMap(model=mf, layer=0)
+    qm = modelmap.plot_ibound()
+    lc = modelmap.plot_grid()
+    qm = modelmap.plot_bc('GHB', alpha=0.5)
+    cs = modelmap.contour_array(head, levels=levels)
+    plt.clabel(cs, inline=1, fontsize=10, fmt='%1.1f', zorder=11)
+    quiver = modelmap.plot_discharge(frf, fff, head=head)
+
+
     mfc = 'None'
     if (iplot+1) == len(mytimes):
         mfc='black'
@@ -150,17 +156,15 @@ for iplot, time in enumerate(mytimes):
              markeredgewidth=0.5,
              markeredgecolor='black', markerfacecolor=mfc, zorder=9)
     plt.text(wpt[0]+25, wpt[1]-25, 'well', size=12, zorder=12)
-    plt.show()
+    plt.savefig('tutorial2-{}.png'.format(iplot))
 
-plt.show()
-
-# Plot the head versus time
-idx = (0, nrow/2 - 1, ncol/2 - 1)
+ # Plot the head versus time
+idx = (0, int(nrow/2) - 1, int(ncol/2) - 1)
 ts = headobj.get_ts(idx)
 plt.subplot(1, 1, 1)
 ttl = 'Head at cell ({0},{1},{2})'.format(idx[0] + 1, idx[1] + 1, idx[2] + 1)
 plt.title(ttl)
 plt.xlabel('time')
 plt.ylabel('head')
-plt.plot(ts[:, 0], ts[:, 1])
-plt.show()
+plt.plot(ts[:, 0], ts[:, 1], 'bo-')
+plt.savefig('tutorial2-ts.png')

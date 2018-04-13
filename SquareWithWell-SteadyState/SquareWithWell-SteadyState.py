@@ -10,13 +10,26 @@
 
 import numpy as np
 import flopy 
+import platform
 
-# where is your MODFLOW-2005 executable?
-path2mf = 'C:/Users/Sam/Dropbox/Work/Models/MODFLOW/MF2005.1_12/bin/mf2005.exe'
+# what version of modflow to use?
+modflow_v = 'mf2005'  # 'mfnwt' or 'mf2005'
+
+# where is your MODFLOW executable?
+if (modflow_v=='mf2005'):
+    if platform.system() == 'Windows':
+        path2mf = 'C:/Users/Sam/Dropbox/Work/Models/MODFLOW/MF2005.1_12/bin/mf2005.exe'
+    else: 
+        path2mf = modflow_v
+elif (modflow_v=='mfnwt'):
+    if platform.system() == 'Windows':
+        path2mf = 'C:/Users/Sam/Dropbox/Work/Models/MODFLOW/MODFLOW-NWT_1.1.3/bin/MODFLOW-NWT.exe'
+    else:
+        path2mf = modflow_v
 
 # Assign name and create modflow model object
 modelname = 'SquareWithWell-SteadyState'
-mf = flopy.modflow.Modflow(modelname, exe_name=path2mf)
+mf = flopy.modflow.Modflow(modelname, exe_name=path2mf, version='mfnwt')
 
 # Model domain and grid definition
 Lx = 1000.
@@ -58,7 +71,11 @@ dis = flopy.modflow.ModflowDis(mf, nlay, nrow, ncol, delr=delr, delc=delc,
                                nper=nper, perlen=perlen, nstp=nstp, steady=steady)
 bas = flopy.modflow.ModflowBas(mf, ibound=ibound, strt=strt)
 lpf = flopy.modflow.ModflowLpf(mf, hk=hk, vka=vka, sy=sy, ss=ss, laytyp=laytyp)
-pcg = flopy.modflow.ModflowPcg(mf)
+
+if (modflow_v=='mf2005'):
+    pcg = flopy.modflow.ModflowPcg(mf)
+elif (modflow_v=='mfnwt'):
+    nwt = flopy.modflow.ModflowNwt(mf)
 
 # set up pumping well
 r_well = round(nrow/2)
@@ -77,7 +94,7 @@ oc = flopy.modflow.ModflowOc(mf, stress_period_data=spd,
 mf.write_input()
 
 # Run the model
-success, mfoutput = mf.run_model(silent=True, pause=False, report=True)
+success, mfoutput = mf.run_model(silent=False, pause=False, report=True)
 if not success:
     raise Exception('MODFLOW did not terminate normally.')
 
