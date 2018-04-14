@@ -15,6 +15,7 @@
 *.sfr
 *.sfr.out
 *.nwt
+*.upw
 
 # images and PDFs
 *.png

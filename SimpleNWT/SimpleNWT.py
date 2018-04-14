@@ -15,7 +15,7 @@ if (modflow_v=='mf2005'):
         path2mf = modflow_v
 elif (modflow_v=='mfnwt'):
     if platform.system() == 'Windows':
-        path2mf = 'C:/Users/Sam/Dropbox/Work/Models/MODFLOW/MODFLOW-NWT_1.1.3/bin/MODFLOW-NWT.exe'
+        path2mf = 'C:/Users/Sam/Dropbox/Work/Models/MODFLOW/MODFLOW-NWT_1.1.4/bin/MODFLOW-NWT.exe'
     else:
         path2mf = modflow_v
         
@@ -27,9 +27,10 @@ oc = mf.ModflowOc(ml)
 
 # choose solver package depending on modflow version
 if (modflow_v=='mf2005'):
+    lpf = mf.ModflowLpf(ml)
     pcg = mf.ModflowPcg(ml)
 elif (modflow_v=='mfnwt'):
-    # linmeth has two matrix solver options (1 or 2)
+    upw = mf.ModflowUpw(ml)
     nwt = mf.ModflowNwt(ml)
 
 ml.write_input()
