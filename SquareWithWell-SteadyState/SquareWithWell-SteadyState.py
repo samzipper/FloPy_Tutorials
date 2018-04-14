@@ -12,8 +12,11 @@ import numpy as np
 import flopy 
 import platform
 
+# make plots?
+make_plots = False
+
 # what version of modflow to use?
-modflow_v = 'mf2005'  # 'mfnwt' or 'mf2005'
+modflow_v = 'mfnwt'  # 'mfnwt' or 'mf2005'
 
 # where is your MODFLOW executable?
 if (modflow_v=='mf2005'):
@@ -70,11 +73,12 @@ dis = flopy.modflow.ModflowDis(mf, nlay, nrow, ncol, delr=delr, delc=delc,
                                top=ztop, botm=botm[1:],
                                nper=nper, perlen=perlen, nstp=nstp, steady=steady)
 bas = flopy.modflow.ModflowBas(mf, ibound=ibound, strt=strt)
-lpf = flopy.modflow.ModflowLpf(mf, hk=hk, vka=vka, sy=sy, ss=ss, laytyp=laytyp)
 
 if (modflow_v=='mf2005'):
+    lpf = flopy.modflow.ModflowLpf(mf, hk=hk, vka=vka, sy=sy, ss=ss, laytyp=laytyp)
     pcg = flopy.modflow.ModflowPcg(mf)
 elif (modflow_v=='mfnwt'):
+    upw = flopy.modflow.ModflowUpw(mf, hk=hk, vka=vka, sy=sy, ss=ss, laytyp=laytyp)
     nwt = flopy.modflow.ModflowNwt(mf)
 
 # set up pumping well
@@ -98,50 +102,52 @@ success, mfoutput = mf.run_model(silent=False, pause=False, report=True)
 if not success:
     raise Exception('MODFLOW did not terminate normally.')
 
-# Imports
-import matplotlib.pyplot as plt
-import flopy.utils.binaryfile as bf
+# look at output
+if (make_plots):
+    # Imports
+    import matplotlib.pyplot as plt
+    import flopy.utils.binaryfile as bf
 
-# Create the headfile object
-headobj = bf.HeadFile(modelname+'.hds', text='head')
-ddnobj = bf.HeadFile(modelname+'.ddn', text='drawdown')
+    # Create the headfile object
+    headobj = bf.HeadFile(modelname+'.hds', text='head')
+    ddnobj = bf.HeadFile(modelname+'.ddn', text='drawdown')
 
-# get data
-time = headobj.get_times()[0]
-head = headobj.get_data(totim=time)
-ddn = ddnobj.get_data(totim=time)
-extent = (x_coord[0],x_coord[ncol-1],y_coord[0],y_coord[nrow-1])
+    # get data
+    time = headobj.get_times()[0]
+    head = headobj.get_data(totim=time)
+    ddn = ddnobj.get_data(totim=time)
+    extent = (x_coord[0],x_coord[ncol-1],y_coord[0],y_coord[nrow-1])
 
-# Well point
-wpt = (float(round(ncol/2)+0.5)*delr, float(round(nrow/2)+0.5)*delc)
+    # Well point
+    wpt = (float(round(ncol/2)+0.5)*delr, float(round(nrow/2)+0.5)*delc)
 
-# plot of head
-plt.subplot(2,2,1)
-plt.imshow(head[0,:,:], extent=extent, cmap='BrBG')
-plt.colorbar()
-plt.plot(wpt[0], wpt[1], lw=0, marker='o', markersize=8,
-             markeredgewidth=0.5,
-             markeredgecolor='black', 
-             markerfacecolor='none', 
-             zorder=9)
+    # plot of head
+    plt.subplot(2,2,1)
+    plt.imshow(head[0,:,:], extent=extent, cmap='BrBG')
+    plt.colorbar()
+    plt.plot(wpt[0], wpt[1], lw=0, marker='o', markersize=8,
+                 markeredgewidth=0.5,
+                 markeredgecolor='black', 
+                 markerfacecolor='none', 
+                 zorder=9)
 
-# plot of drawdown
-plt.subplot(2,2,3)
-plt.imshow(ddn[0,:,:], extent=extent, cmap='BrBG')
-plt.colorbar()
-plt.plot(wpt[0], wpt[1], lw=0, marker='o', markersize=8,
-             markeredgewidth=0.5,
-             markeredgecolor='black', 
-             markerfacecolor='none', 
-             zorder=9)
+    # plot of drawdown
+    plt.subplot(2,2,3)
+    plt.imshow(ddn[0,:,:], extent=extent, cmap='BrBG')
+    plt.colorbar()
+    plt.plot(wpt[0], wpt[1], lw=0, marker='o', markersize=8,
+                 markeredgewidth=0.5,
+                 markeredgecolor='black', 
+                 markerfacecolor='none', 
+                 zorder=9)
 
-# cross-section (L-R) of head through the well
-plt.subplot(2,2,2)
-plt.plot(x_coord, head[0,r_well,:])
-plt.subplot(2,2,4)
-plt.plot(x_coord, ddn[0,r_well,:])
-plt.show()
+    # cross-section (L-R) of head through the well
+    plt.subplot(2,2,2)
+    plt.plot(x_coord, head[0,r_well,:])
+    plt.subplot(2,2,4)
+    plt.plot(x_coord, ddn[0,r_well,:])
+    plt.show()
 
-# cross-section (B-T) of head through the well
-plt.plot(head[0,:,c_well], y_coord)
-plt.plot(ddn[0,:,c_well], y_coord)
+    # cross-section (B-T) of head through the well
+    plt.plot(head[0,:,c_well], y_coord)
+    plt.plot(ddn[0,:,c_well], y_coord)
