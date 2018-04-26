@@ -12,11 +12,11 @@
 *.ddn
 *.ghb
 *.cbc
-*.sfr
-*.sfr.out
+*.sfr*
 *.nwt
 *.upw
 *.mnw2
+*.riv*
 
 # images and PDFs
 *.png
